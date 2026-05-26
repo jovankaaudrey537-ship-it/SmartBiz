@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   BarChart3, 
   Package, 
@@ -22,9 +22,13 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import OrderModal from './components/OrderModal';
+import TrialModal from './components/TrialModal';
+import DemoModal from './components/DemoModal';
+import ContactModal from './components/ContactModal';
 
 // Components
-const Navbar = () => {
+const Navbar = ({ onStart, onContact, activePlan }: { onStart: () => void; onContact: () => void; activePlan: string | null }) => {
   const [scrolled, setScrolled] = React.useState(false);
 
   React.useEffect(() => {
@@ -43,31 +47,61 @@ const Navbar = () => {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <Zap className="text-white w-5 h-5" />
           </div>
-          <span className={cn("text-xl font-bold font-display tracking-tight", scrolled ? "text-slate-900" : "text-white")}>
+          <span className={cn("text-xl font-bold font-display tracking-tight flex items-center gap-2", scrolled ? "text-slate-900" : "text-white")}>
             SmartBiz
+            {activePlan && (
+              <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-2 py-0.5 rounded-full">
+                {activePlan} Premium
+              </span>
+            )}
           </span>
         </div>
         
-        <div className="hidden md:flex items-center gap-8">
-          {['Layanan', 'Paket', 'Sosial', 'Tentang'].map((item) => (
-            <a 
-              key={item} 
-              href={`#${item.toLowerCase()}`} 
-              className={cn("text-sm font-medium transition-colors hover:text-blue-500", scrolled ? "text-slate-600" : "text-slate-200")}
+        <div className="flex items-center gap-4 md:gap-8">
+          <div className="hidden md:flex items-center gap-8">
+            {['Layanan', 'Paket', 'Sosial', 'Tentang'].map((item) => (
+              <a 
+                key={item} 
+                href={`#${item.toLowerCase()}`} 
+                className={cn("text-sm font-medium transition-colors hover:text-blue-500", scrolled ? "text-slate-600" : "text-slate-200")}
+              >
+                {item}
+              </a>
+            ))}
+            <button
+              onClick={onContact}
+              className={cn("text-sm font-medium transition-colors hover:text-blue-500 cursor-pointer border-0 bg-transparent text-left font-sans outline-none", scrolled ? "text-slate-600" : "text-slate-200")}
             >
-              {item}
-            </a>
-          ))}
-          <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-full text-sm font-semibold transition-all">
-            Mulai Sekarang
+              Kontak
+            </button>
+          </div>
+
+          <button
+            onClick={onContact}
+            className={cn("md:hidden text-xs font-bold px-3 py-1.5 rounded-lg border border-white/20 hover:bg-white/10 transition-colors uppercase cursor-pointer", scrolled ? "text-slate-700 border-slate-300 hover:bg-slate-100" : "text-white hover:bg-white/10")}
+          >
+            Kontak
           </button>
+          
+          {activePlan ? (
+            <div className="flex items-center gap-2 bg-emerald-500 text-white px-4 md:px-5 py-1.5 md:py-2 rounded-full text-[11px] md:text-xs font-bold shadow-md shadow-emerald-500/15">
+              <CheckCircle2 className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Akun</span> Aktif
+            </div>
+          ) : (
+            <button 
+              onClick={onStart}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 md:px-5 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-semibold transition-all cursor-pointer shadow-md shadow-blue-600/20"
+            >
+              Mulai Uji Coba
+            </button>
+          )}
         </div>
       </div>
     </nav>
   );
 };
 
-const Hero = () => {
+const Hero = ({ onStart, onViewDemo, activePlan }: { onStart: () => void; onViewDemo: () => void; activePlan: string | null }) => {
   return (
     <section className="relative h-screen w-full overflow-hidden flex items-center justify-center">
       {/* Fallback pattern background if image fails to load or for better contrast */}
@@ -93,15 +127,38 @@ const Hero = () => {
             <span className="text-blue-400">Mengembangkan Bisnis Anda</span>
           </h1>
           <p className="text-lg md:text-xl text-slate-300 mb-10 max-w-2xl mx-auto">
-            Platform lengkap untuk manajemen keuangan, kontrol stok, dan layanan pelanggan premium yang dirancang khusus untuk bisnis yang berkembang.
+            {activePlan ? (
+              <span className="text-emerald-400 font-bold block mb-4 bg-emerald-500/10 p-3 rounded-2xl border border-emerald-500/25 max-w-lg mx-auto">
+                🎉 Selamat! Anda saat ini berada dalam Keanggotaan Premium {activePlan}! Dasbor premium Anda kini sepenuhnya diaktifkan.
+              </span>
+            ) : (
+              "Platform lengkap untuk manajemen keuangan, kontrol stok, dan layanan pelanggan premium yang dirancang khusus untuk bisnis yang berkembang."
+            )}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2">
-              Mulai Uji Coba Gratis <ChevronRight className="w-4 h-4" />
-            </button>
-            <button className="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl font-bold backdrop-blur-md transition-all">
-              Lihat Demo
-            </button>
+            {activePlan ? (
+              <a 
+                href="#paket"
+                className="w-full sm:w-auto px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                Lihat Detail Langganan
+              </a>
+            ) : (
+              <>
+                <button 
+                  onClick={onStart}
+                  className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  Mulai Uji Coba Gratis <ChevronRight className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={onViewDemo}
+                  className="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 text-white border border-white/20 rounded-xl font-bold backdrop-blur-md transition-all cursor-pointer"
+                >
+                  Lihat Demo
+                </button>
+              </>
+            )}
           </div>
         </motion.div>
       </div>
@@ -460,7 +517,13 @@ const SupportPortal = () => {
   );
 };
 
-const Pricing = () => {
+const Pricing = ({ 
+  onSelectPlan,
+  activePlan 
+}: { 
+  onSelectPlan: (plan: { name: string; price: string; billingCycle: 'monthly' | 'annually' }) => void;
+  activePlan: string | null;
+}) => {
   const [billingCycle, setBillingCycle] = React.useState<'monthly' | 'annually'>('monthly');
 
   const tiers = [
@@ -533,7 +596,7 @@ const Pricing = () => {
             <span className={cn("text-sm font-medium", billingCycle === 'monthly' ? "text-slate-900" : "text-slate-400")}>Bulanan</span>
             <button 
               onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'annually' : 'monthly')}
-              className="relative w-14 h-7 bg-slate-200 rounded-full p-1 transition-colors hover:bg-slate-300"
+              className="relative w-14 h-7 bg-slate-200 rounded-full p-1 transition-colors hover:bg-slate-300 cursor-pointer"
             >
               <div className={cn(
                 "absolute top-1 left-1 w-5 h-5 bg-blue-600 rounded-full transition-transform duration-300 shadow-sm",
@@ -548,74 +611,88 @@ const Pricing = () => {
       </div>
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-        {tiers.map((tier, i) => (
-          <motion.div 
-            key={i}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.1 }}
-            className={cn(
-              "relative p-10 rounded-[2.5rem] transition-all flex flex-col group",
-              tier.isPopular 
-                ? "bg-slate-900 text-white shadow-2xl shadow-blue-900/20 md:-translate-y-4 ring-4 ring-blue-500/10" 
-                : "bg-white border border-slate-200 text-slate-900 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-200/50"
-            )}
-          >
-            {tier.isPopular && (
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-600 to-sky-500 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-lg">
-                Pilihan Terbaik
+        {tiers.map((tier, i) => {
+          const isCurrentActive = activePlan === tier.name;
+          return (
+            <motion.div 
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className={cn(
+                "relative p-10 rounded-[2.5rem] transition-all flex flex-col group",
+                tier.isPopular 
+                  ? "bg-slate-900 text-white shadow-2xl shadow-blue-900/20 md:-translate-y-4 ring-4 ring-blue-500/10" 
+                  : "bg-white border border-slate-200 text-slate-900 hover:border-blue-200 hover:shadow-xl hover:shadow-slate-200/50",
+                isCurrentActive && "ring-4 ring-emerald-500/35"
+              )}
+            >
+              {tier.isPopular && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-600 to-sky-500 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-lg">
+                  Pilihan Terbaik
+                </div>
+              )}
+              {isCurrentActive && (
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-500 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-lg">
+                  Paket Anda
+                </div>
+              )}
+              
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold mb-3 font-display">{tier.name}</h3>
+                <p className={cn("text-sm leading-relaxed", tier.isPopular ? "text-slate-400" : "text-slate-500")}>
+                  {tier.desc}
+                </p>
               </div>
-            )}
-            
-            <div className="mb-8">
-              <h3 className="text-2xl font-bold mb-3 font-display">{tier.name}</h3>
-              <p className={cn("text-sm leading-relaxed", tier.isPopular ? "text-slate-400" : "text-slate-500")}>
-                {tier.desc}
-              </p>
-            </div>
 
-            <div className="flex items-baseline gap-1 mb-8">
-              <span className="text-xs font-bold self-start mt-2">Rp</span>
-              <span className="text-5xl font-black tracking-tight">{tier.price}</span>
-              <span className="text-sm font-bold">rb</span>
-              <span className={cn("text-xs font-medium ml-1", tier.isPopular ? "text-slate-500" : "text-slate-400")}>
-                /{billingCycle === 'monthly' ? 'bulan' : 'thn'}
-              </span>
-            </div>
-
-            <div className="h-px w-full bg-slate-100 mb-8 opacity-20" />
-
-            <ul className="space-y-4 mb-12 flex-grow">
-              {tier.features.map((f, fi) => (
-                <li key={fi} className="flex items-center gap-3 text-sm font-medium">
-                  <div className={cn(
-                    "w-5 h-5 rounded-full flex items-center justify-center shrink-0",
-                    tier.isPopular ? "bg-blue-500/20 text-blue-400" : "bg-emerald-50 text-emerald-500"
-                  )}>
-                    <CheckCircle2 className="w-3 h-3" />
-                  </div>
-                  <span className={tier.isPopular ? "text-slate-300" : "text-slate-600"}>{f}</span>
-                </li>
-              ))}
-            </ul>
-
-            <button className={cn(
-              "w-full py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 shadow-lg",
-              tier.isPopular 
-                ? "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/30" 
-                : "bg-slate-900 hover:bg-slate-800 text-white shadow-slate-900/20"
-            )}>
-              {tier.buttonText}
-            </button>
-            
-            {!tier.isPopular && (
-              <div className="mt-6 text-center">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Batalkan Kapan Saja</span>
+              <div className="flex items-baseline gap-1 mb-8">
+                <span className="text-xs font-bold self-start mt-2">Rp</span>
+                <span className="text-5xl font-black tracking-tight">{tier.price}</span>
+                <span className="text-sm font-bold">rb</span>
+                <span className={cn("text-xs font-medium ml-1", tier.isPopular ? "text-slate-500" : "text-slate-400")}>
+                  /{billingCycle === 'monthly' ? 'bulan' : 'thn'}
+                </span>
               </div>
-            )}
-          </motion.div>
-        ))}
+
+              <div className="h-px w-full bg-slate-100 mb-8 opacity-20" />
+
+              <ul className="space-y-4 mb-12 flex-grow">
+                {tier.features.map((f, fi) => (
+                  <li key={fi} className="flex items-center gap-3 text-sm font-medium">
+                    <div className={cn(
+                      "w-5 h-5 rounded-full flex items-center justify-center shrink-0",
+                      tier.isPopular ? "bg-blue-500/20 text-blue-400" : "bg-emerald-50 text-emerald-500"
+                    )}>
+                      <CheckCircle2 className="w-3 h-3" />
+                    </div>
+                    <span className={tier.isPopular ? "text-slate-300" : "text-slate-600"}>{f}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <button 
+                onClick={() => onSelectPlan({ name: tier.name, price: tier.price, billingCycle })}
+                className={cn(
+                  "w-full py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all active:scale-95 shadow-lg cursor-pointer",
+                  isCurrentActive
+                    ? "bg-emerald-500 hover:bg-emerald-400 text-white shadow-emerald-500/30"
+                    : tier.isPopular 
+                      ? "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/30" 
+                      : "bg-slate-900 hover:bg-slate-800 text-white shadow-slate-900/20"
+                )}
+              >
+                {isCurrentActive ? "Perbarui detail" : tier.buttonText}
+              </button>
+              
+              {!tier.isPopular && (
+                <div className="mt-6 text-center">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Batalkan Kapan Saja</span>
+                </div>
+              )}
+            </motion.div>
+          );
+        })}
       </div>
       
       <div className="mt-16 max-w-4xl mx-auto p-8 rounded-3xl bg-blue-50 border border-blue-100 flex flex-col md:flex-row items-center justify-between gap-6">
@@ -628,7 +705,10 @@ const Pricing = () => {
             <p className="text-sm text-slate-600">Kami menawarkan solusi kustom untuk korporasi dengan ratusan cabang.</p>
           </div>
         </div>
-        <button className="px-8 py-3 bg-white border border-blue-200 text-blue-600 font-bold rounded-xl hover:bg-blue-50 transition-all shadow-sm">
+        <button 
+          onClick={() => onSelectPlan({ name: "Enterprise", price: billingCycle === 'monthly' ? "999" : "799", billingCycle })}
+          className="px-8 py-3 bg-white border border-blue-200 text-blue-600 font-bold rounded-xl hover:bg-blue-50 transition-all shadow-sm cursor-pointer"
+        >
           Konsultasi Sekarang
         </button>
       </div>
@@ -669,23 +749,34 @@ const About = () => {
   );
 };
 
-const Footer = () => {
+const Footer = ({ onContact }: { onContact: () => void }) => {
   return (
     <footer className="bg-slate-900 text-white py-16 px-6">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-        <div className="col-span-1 md:col-span-2">
-          <div className="flex items-center gap-2 mb-6">
+        <div className="col-span-1 md:col-span-2 text-left">
+          <div className="flex items-center gap-2 mb-6 text-left justify-start">
             <Zap className="text-blue-500 w-6 h-6" />
             <span className="text-2xl font-bold font-display">SmartBiz</span>
           </div>
-          <p className="text-slate-400 max-w-sm mb-6">
+          <p className="text-slate-400 max-w-sm mb-6 text-left">
             Didedikasikan untuk memberdayakan ekonomi lokal dengan menyediakan alat tingkat perusahaan kepada UMKM dengan harga yang terjangkau.
           </p>
+          <div className="space-y-2 text-xs text-slate-400 text-left">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-blue-400">Hotline:</span> (021) 5098-BIZ-99
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-blue-400">WhatsApp:</span> +62 812-3456-7890
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-blue-400">Email:</span> hello@smartbiz.co.id
+            </div>
+          </div>
         </div>
         
-        <div>
+        <div className="text-left">
           <h4 className="font-bold mb-6 italic text-blue-400">Produk</h4>
-          <ul className="space-y-4 text-sm text-slate-400">
+          <ul className="space-y-4 text-sm text-slate-400 text-left list-none pl-0">
             <li><a href="#" className="hover:text-white transition-colors">Suite Keuangan</a></li>
             <li><a href="#" className="hover:text-white transition-colors">Master Inventaris</a></li>
             <li><a href="#" className="hover:text-white transition-colors">Portal Dukungan</a></li>
@@ -693,11 +784,11 @@ const Footer = () => {
           </ul>
         </div>
         
-        <div>
+        <div className="text-left">
           <h4 className="font-bold mb-6 italic text-blue-400">Perusahaan</h4>
-          <ul className="space-y-4 text-sm text-slate-400">
+          <ul className="space-y-4 text-sm text-slate-400 text-left list-none pl-0">
             <li><a href="#" className="hover:text-white transition-colors">Tentang Kami</a></li>
-            <li><a href="#" className="hover:text-white transition-colors">Karir</a></li>
+            <li><button onClick={onContact} className="hover:text-white transition-colors bg-transparent border-0 font-sans outline-none cursor-pointer p-0 text-left">Hubungi Chat & Support</button></li>
             <li><a href="#" className="hover:text-white transition-colors">Kebijakan Privasi</a></li>
             <li><a href="#" className="hover:text-white transition-colors">Ketentuan Layanan</a></li>
           </ul>
@@ -719,25 +810,149 @@ const Footer = () => {
 };
 
 export default function App() {
+  const [selectedPlan, setSelectedPlan] = React.useState<{
+    name: string;
+    price: string;
+    billingCycle: 'monthly' | 'annually';
+  } | null>(null);
+
+  const [activePlan, setActivePlan] = React.useState<string | null>(null);
+  const [showToast, setShowToast] = React.useState(false);
+  const [toastContent, setToastContent] = React.useState<{ title: string; desc: string }>({
+    title: 'Pembayaran Sukses!',
+    desc: 'Pemesanan Anda diterima. Paket Premium kini aktif.'
+  });
+
+  const [showTrialModal, setShowTrialModal] = React.useState(false);
+  const [showDemoModal, setShowDemoModal] = React.useState(false);
+  const [showContactModal, setShowContactModal] = React.useState(false);
+
+  const handleStart = () => {
+    setSelectedPlan({
+      name: 'Profesional',
+      price: '399',
+      billingCycle: 'annually'
+    });
+  };
+
+  const handleOpenTrial = () => {
+    setShowTrialModal(true);
+  };
+
+  const handleOpenDemo = () => {
+    setShowDemoModal(true);
+  };
+
+  const handleTrialActivated = (businessName: string, category: string) => {
+    setActivePlan(`Trial (${category})`);
+    setToastContent({
+      title: 'Uji Coba Gratis Aktif!',
+      desc: `Selamat! Lisensi Sandbox 14 hari aktif untuk "${businessName}".`
+    });
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+    }, 6000);
+  };
+
+  const handlePaymentSuccess = (planName: string) => {
+    setActivePlan(planName);
+    setToastContent({
+      title: 'Pembayaran Sukses!',
+      desc: `Pemesanan Anda diterima. Paket ${planName} Premium kini aktif.`
+    });
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+    }, 5000);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Navbar />
+    <div className="min-h-screen bg-slate-50 relative">
+      <AnimatePresence>
+        {showToast && (
+          <motion.div 
+            initial={{ opacity: 0, y: -50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -50, scale: 0.9 }}
+            className="fixed top-24 left-1/2 -translate-x-1/2 z-[150] bg-slate-900 text-white p-4 rounded-2xl shadow-2xl border border-emerald-500/30 flex items-center gap-4 max-w-md w-11/12"
+          >
+            <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm">{toastContent.title}</h4>
+              <p className="text-xs text-slate-400">{toastContent.desc}</p>
+            </div>
+            <button 
+              onClick={() => setShowToast(false)}
+              className="text-slate-400 hover:text-white ml-auto text-xs font-bold cursor-pointer"
+            >
+              Tutup
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <Navbar onStart={handleOpenTrial} onContact={() => setShowContactModal(true)} activePlan={activePlan} />
       <main>
-        <Hero />
+        <Hero onStart={handleOpenTrial} onViewDemo={handleOpenDemo} activePlan={activePlan} />
         <Services />
         <DashboardPreview />
         <SocialIntegration />
         <SupportPortal />
-        <Pricing />
+        <Pricing onSelectPlan={setSelectedPlan} activePlan={activePlan} />
         <About />
       </main>
-      <Footer />
-      <button className="fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-50 group">
+      <Footer onContact={() => setShowContactModal(true)} />
+      <button 
+        onClick={() => setShowContactModal(true)}
+        className="fixed bottom-8 right-8 w-14 h-14 bg-blue-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-transform z-50 group cursor-pointer"
+      >
         <MessageSquare className="w-6 h-6" />
         <span className="absolute right-full mr-4 bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-          Chat dengan Ahli
+          Chat / Hubungi Kami
         </span>
       </button>
+
+      {/* Checkout Order & Payment Modal */}
+      {selectedPlan && (
+        <OrderModal 
+          isOpen={!!selectedPlan}
+          onClose={() => setSelectedPlan(null)}
+          selectedPlan={selectedPlan}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
+      )}
+
+      {/* Trial Onboarding Modal */}
+      {showTrialModal && (
+        <TrialModal 
+          isOpen={showTrialModal}
+          onClose={() => setShowTrialModal(false)}
+          onTrialActivated={handleTrialActivated}
+        />
+      )}
+
+      {/* Interactive Demo Sandbox Modal */}
+      {showDemoModal && (
+        <DemoModal 
+          isOpen={showDemoModal}
+          onClose={() => setShowDemoModal(false)}
+          onDemoSubmitTrial={() => {
+            setShowDemoModal(false);
+            setShowTrialModal(true);
+          }}
+        />
+      )}
+
+      {/* Contact Support Info Modal */}
+      {showContactModal && (
+        <ContactModal 
+          isOpen={showContactModal}
+          onClose={() => setShowContactModal(false)}
+        />
+      )}
     </div>
   );
 }
